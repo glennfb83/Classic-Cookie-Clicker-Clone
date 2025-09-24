@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cookie Clone</title>
+<style>
+  body {
+    margin:0;
+    background:#ccc;
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+    color: #000;
+  }
+  /* info box */
+  #info {
+    position:absolute;
+    top:10px;
+    left:10px;
+    background:#eee;
+    border:1px solid #000;
+    padding:5px;
+    width:160px;
+  }
+  #info hr {margin:4px 0;}
+  textarea {
+    width:150px;
+    height:50px;
+    font-family:"Courier New",monospace;
+    font-size:11px;
+  }
+
+  /* center cookie */
+  #cookieArea {
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+  }
+  #bigCookie {
+    width:220px;
+    cursor:pointer;
+  }
+  #statsUnderCookie {
+    margin-top:5px;
+    font-weight:bold;
+  }
+
+  /* shop panel */
+  #shop {
+    position:absolute;
+    top:0;
+    right:0;
+    width:300px;
+    background:#bbb;
+    border-left:1px solid #000;
+  }
+  .item {
+    display:flex;
+    align-items:center;
+    border-top:1px solid #000;
+    background:#ddd;
+    cursor:pointer;
+    padding:6px;
+    min-height:48px;
+  }
+  .item img {
+    width:40px;
+    height:40px;
+    margin-right:6px;
+  }
+  .title {
+    font-weight:bold;
+  }
+</style>
+</head>
+<body>
+
+<div id="info">
+  <b>Stats</b><br>
+  Total cookies: <span id="totalCookies">0</span><br>
+  Total clicks: <span id="totalClicks">0</span><br>
+  Buildings owned: <span id="buildingsOwned">0</span><br>
+  Cookies/second: <span id="cpsSide">0</span><br>
+  <hr>
+  <button onclick="saveGame()">Save</button>
+  <button onclick="loadGame()">Load</button>
+  <button onclick="exportSave()">Export</button>
+  <button onclick="importSave()">Import</button><br>
+  <textarea id="saveData"></textarea>
+</div>
+
+<div id="cookieArea">
+  <img id="bigCookie" src="https://orteil.dashnet.org/cookieclicker/img/perfectCookie.png" alt="cookie">
+  <div id="statsUnderCookie">
+    <div>cookies: <span id="cookiesCenter">0</span></div>
+    <div>cookies/second: <span id="cpsCenter">0</span></div>
+  </div>
+</div>
+
+<div id="shop">
+  <div class="item" onclick="buy('cursor')">
+    <img src="https://orteil.dashnet.org/cookieclicker/img/cursor.png">
+    <div>
+      <div class="title" id="cursorTitle">Cursor - 15 cookies</div>
+      <div>Autoclicks every 5 seconds.</div>
+    </div>
+  </div>
+  <div class="item" onclick="buy('grandma')">
+    <img src="https://orteil.dashnet.org/cookieclicker/img/grandma.png">
+    <div>
+      <div class="title" id="grandmaTitle">Grandma - 100 cookies</div>
+      <div>Bakes cookies for you.</div>
+    </div>
+  </div>
+  <div class="item" onclick="buy('factory')">
+    <img src="https://orteil.dashnet.org/cookieclicker/img/factory.png">
+    <div>
+      <div class="title" id="factoryTitle">Factory - 500 cookies</div>
+      <div>Mass produces cookies.</div>
+    </div>
+  </div>
+  <div class="item" onclick="buy('mine')">
+    <img src="https://orteil.dashnet.org/cookieclicker/img/mine.png">
+    <div>
+      <div class="title" id="mineTitle">Mine - 2000 cookies</div>
+      <div>Extracts cookie dough from the earth.</div>
+    </div>
+  </div>
+  <div class="item" onclick="buy('shipment')">
+    <img src="https://orteil.dashnet.org/cookieclicker/img/shipment.png">
+    <div>
+      <div class="title" id="shipmentTitle">Shipment - 7000 cookies</div>
+      <div>Brings cookies from space.</div>
+    </div>
+  </div>
+  <div class="item" onclick="buy('portal')">
+    <img src="https://orteil.dashnet.org/cookieclicker/img/portal.png">
+    <div>
+      <div class="title" id="portalTitle">Portal - 50000 cookies</div>
+      <div>Opens a door to the Cookieverse.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let cookies=0;
+let totalCookies=0;
+let totalClicks=0;
+let cps=0;
+let upgrades={
+  cursor:{cost:15,cps:0.1,count:0,title:'Cursor'},
+  grandma:{cost:100,cps:1,count:0,title:'Grandma'},
+  factory:{cost:500,cps:5,count:0,title:'Factory'},
+  mine:{cost:2000,cps:20,count:0,title:'Mine'},
+  shipment:{cost:7000,cps:50,count:0,title:'Shipment'},
+  portal:{cost:50000,cps:200,count:0,title:'Portal'}
+};
+
+document.getElementById('bigCookie').addEventListener('click',()=>{
+  cookies++;
+  totalCookies++;
+  totalClicks++;
+  update();
+});
+
+function buy(type){
+  let u=upgrades[type];
+  if(cookies>=u.cost){
+    cookies-=u.cost;
+    u.count++;
+    cps+=u.cps;
+    u.cost=Math.floor(u.cost*1.15);
+    document.getElementById(type+'Title').textContent=`${u.title} - ${u.cost} cookies (${u.count})`;
+    update();
+  }
+}
+
+function update(){
+  document.getElementById('cookiesCenter').textContent=Math.floor(cookies);
+  document.getElementById('cpsCenter').textContent=cps.toFixed(1);
+  document.getElementById('cpsSide').textContent=cps.toFixed(1);
+  document.getElementById('totalCookies').textContent=Math.floor(totalCookies);
+  document.getElementById('totalClicks').textContent=totalClicks;
+  let bOwned=Object.values(upgrades).reduce((a,u)=>a+u.count,0);
+  document.getElementById('buildingsOwned').textContent=bOwned;
+}
+
+setInterval(()=>{
+  cookies+=cps/10;
+  totalCookies+=cps/10;
+  update();
+},100);
+
+/* Save & Load */
+function saveGame(){
+  let data={
+    cookies,cps,totalCookies,totalClicks,upgrades
+  };
+  localStorage.setItem('cookieCloneSave',JSON.stringify(data));
+}
+
+function loadGame(){
+  let data=localStorage.getItem('cookieCloneSave');
+  if(data){
+    let s=JSON.parse(data);
+    cookies=s.cookies||0;
+    cps=s.cps||0;
+    totalCookies=s.totalCookies||0;
+    totalClicks=s.totalClicks||0;
+    upgrades=s.upgrades||upgrades;
+    // rebuild titles
+    for(let key in upgrades){
+      let u=upgrades[key];
+      document.getElementById(key+'Title').textContent=`${u.title} - ${u.cost} cookies (${u.count})`;
+    }
+    update();
+  }
+}
+
+function exportSave(){
+  saveGame();
+  document.getElementById('saveData').value=btoa(localStorage.getItem('cookieCloneSave'));
+}
+
+function importSave(){
+  let data=document.getElementById('saveData').value;
+  if(data){
+    localStorage.setItem('cookieCloneSave',atob(data));
+    loadGame();
+  }
+}
+
+// auto load
+window.onload=loadGame;
+</script>
+
+</body>
+</html>
